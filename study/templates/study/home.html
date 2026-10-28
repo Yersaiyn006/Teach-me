@@ -1,0 +1,210 @@
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Teach Me — Оқу кеңістігі</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Unbounded:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'study/home.css' %}">
+</head>
+
+<body>
+<nav>
+    <a href="{% url 'home' %}" class="logo">
+        teach<span>me.</span>
+    </a>
+
+    <div class="nav-right">
+        <a href="#workspace">Оқу студиясы</a>
+        <a href="#saved">Сақталған материалдар</a>
+
+        <span class="mode">
+            {% if mode == "demo" %}
+                DEMO
+            {% elif mode == "live" %}
+                LIVE
+            {% else %}
+                UNKNOWN
+            {% endif %}
+        </span>
+    </div>
+</nav>
+
+<main class="container">
+
+    <section class="hero">
+        <div>
+            <h1>
+                Оқуды жеңілдет.
+                <span>Білімді бекіт.</span>
+            </h1>
+
+            <p class="subtitle">
+                Оқу материалыңды енгіз. Teach Me оны
+                түсінуге және қайталауға ыңғайлы
+                сұрақ-жауап карточкаларына айналдырады.
+            </p>
+
+            <a class="cta" href="#workspace">
+                Бастау
+            </a>
+        </div>
+
+        <div class="stack" aria-hidden="true">
+            <div class="demo demo-back"></div>
+            <div class="demo demo-mid"></div>
+
+            <div class="demo demo-front">
+                <div class="q-tag">Сұрақ</div>
+
+                <h4>
+                    Фотосинтез жасушаның қай
+                    бөлігінде жүреді?
+                </h4>
+
+                <div class="demo-answer">
+                    <b>Жауап</b>
+                    <p>Хлоропластарда</p>
+                </div>
+
+                <div class="demo-quote">
+                    «…хлорофилл күн энергиясын
+                    хлоропластарда жинайды…»
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="workspace" id="workspace">
+        <aside class="sidebar">
+            <h3>Жұмыс кезеңдері</h3>
+
+            <div class="steps">
+                <div class="step">
+                    <span class="number">01</span>
+                    Мәтінді енгізу
+                </div>
+
+                <div class="step">
+                    <span class="number">02</span>
+                    Карточка жасау
+                </div>
+
+                <div class="step">
+                    <span class="number">03</span>
+                    Білімді қайталау
+                </div>
+            </div>
+        </aside>
+
+        <div class="editor">
+            <h2>Жаңа материал</h2>
+
+            <p class="desc">
+                Тақырыпты және оқу мәтінін енгізіңіз.
+            </p>
+
+            <form method="post" id="source-form">
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                    <div class="errors" role="alert">
+                        {{ form.non_field_errors }}
+                    </div>
+                {% endif %}
+
+                <div class="field">
+                    <label for="{{ form.title.id_for_label }}">
+                        {{ form.title.label }}
+                    </label>
+
+                    {{ form.title }}
+                    {{ form.title.errors }}
+                </div>
+
+                <div class="field">
+                    <label for="{{ form.text.id_for_label }}">
+                        {{ form.text.label }}
+                    </label>
+
+                    {{ form.text }}
+                    {{ form.text.errors }}
+
+                    <div class="meter" id="meter">
+                        <i></i>
+                    </div>
+
+                    <div class="field-note">
+                        <span>80–12000 таңба</span>
+                        <span id="counter"></span>
+                    </div>
+                </div>
+
+                <button
+                    class="submit"
+                    type="submit"
+                    id="submit-btn"
+                >
+                    Карточкалар жасау
+                </button>
+            </form>
+        </div>
+    </section>
+
+    <section class="results" id="saved">
+        <h2>Сақталған материалдар</h2>
+
+        <p class="desc">
+            Бұрын жасалған карточкаларды
+            қайта ашып, қайталай аласыз.
+        </p>
+
+        {% if saved_sources %}
+            <div class="cards">
+                {% for source in saved_sources %}
+                    <article class="card">
+                        <div class="card-top">
+                            {{ source.generation_mode|upper }}
+                            ·
+                            {{ source.created_at|date:"d.m.Y H:i" }}
+                        </div>
+
+                        <h3>{{ source.title }}</h3>
+
+                        <p class="desc">
+                            {{ source.text|truncatechars:140 }}
+                        </p>
+
+                        <a
+                            class="cta"
+                            href="{% url 'source_detail' source.pk %}"
+                        >
+                            Карточкаларды ашу
+                        </a>
+                    </article>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="editor">
+                <p class="desc">
+                    Әзірге сақталған материал жоқ.
+                    Алғашқы карточкаларыңызды жасаңыз.
+                </p>
+            </div>
+        {% endif %}
+    </section>
+
+</main>
+
+<footer>
+    Teach Me © 2026 · Learn smarter.
+</footer>
+
+<script src="{% static 'study/home.js' %}"></script>
+</body>
+</html>

@@ -1,0 +1,118 @@
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ source.title }} — Teach Me</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Unbounded:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'study/home.css' %}">
+</head>
+
+<body>
+
+<nav>
+    <a href="{% url 'home' %}" class="logo">
+        teach<span>me.</span>
+    </a>
+
+    <div class="nav-right">
+        <a href="{% url 'home' %}">
+            Басты бет
+        </a>
+
+        <span class="mode">
+            {{ source.generation_mode|upper }}
+        </span>
+    </div>
+</nav>
+
+<main class="container">
+
+    <section class="hero">
+        <div>
+            <p class="desc">
+                Сақталған оқу материалы
+            </p>
+
+            <h1>{{ source.title }}</h1>
+
+            <p class="subtitle">
+                Жасалған уақыты:
+                {{ source.created_at|date:"d.m.Y H:i" }}
+            </p>
+
+            <a class="cta" href="{% url 'home' %}">
+                ← Басты бетке оралу
+            </a>
+        </div>
+    </section>
+
+    <section class="results" id="results">
+        <h2>Оқу карточкалары</h2>
+
+        <p class="desc">
+            {{ cards|length }} карточка сақталған.
+            Жауапты көру үшін «Жауапты көрсету»
+            батырмасын ашыңыз.
+        </p>
+
+        <div class="cards">
+            {% for card in cards %}
+                <article class="card">
+                    <div class="card-top">
+                        Карточка {{ card.position }}
+                    </div>
+
+                    <h3>{{ card.question }}</h3>
+
+                    <details>
+                        <summary>
+                            Жауапты көрсету
+                        </summary>
+
+                        <div class="answer">
+                            {{ card.answer }}
+                        </div>
+
+                        <blockquote>
+                            {{ card.source_quote }}
+                        </blockquote>
+                    </details>
+                </article>
+            {% empty %}
+                <div class="editor">
+                    <p class="desc">
+                        Бұл материалда карточкалар жоқ.
+                    </p>
+                </div>
+            {% endfor %}
+        </div>
+
+        <p class="field-note">
+            Дәйексөз бастапқы мәтінде үзіндінің
+            бар екенін растайды, бірақ жауаптың
+            фактілік дұрыстығына кепілдік бермейді.
+        </p>
+    </section>
+
+    <section class="results">
+        <h2>Бастапқы оқу мәтіні</h2>
+
+        <div class="editor">
+            <div style="white-space: pre-wrap; overflow-wrap: anywhere;">{{ source.text }}</div>
+        </div>
+    </section>
+
+</main>
+
+<footer>
+    Teach Me © 2026 · Learn smarter.
+</footer>
+
+</body>
+</html>
