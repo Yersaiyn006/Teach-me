@@ -1,14 +1,17 @@
-
 from django.conf import settings
 from django.db import DatabaseError, transaction
+from django.db.models import Count, Q
+from django.http import HttpResponseBadRequest
 from django.shortcuts import (
     get_object_or_404,
     redirect,
     render,
 )
+from django.views.decorators.csrf import csrf_protect
+from django.views.decorators.http import require_http_methods, require_POST
 
 from .demo import DEMO_TITLE, DEMO_TEXT
-from .forms import SourceForm
+from .forms import FlashcardForm, SourceForm
 from .models import Source, Flashcard
 from .services import (
     GenerationError,
@@ -130,17 +133,91 @@ def home(request):
 
 def source_detail(request, pk):
     source = get_object_or_404(Source, pk=pk)
+    status = request.GET.get("status", "all")
 
-    cards = source.cards.order_by(
-        "position",
-        "id",
+    if status not in ("all", "pending", "verified"):
+        status = "all"
+
+    source_cards = source.cards.all()
+    counts = source_cards.aggregate(
+        total_count=Count("pk"),
+        verified_count=Count("pk", filter=Q(is_verified=True)),
     )
+    total_count = counts["total_count"]
+    verified_count = counts["verified_count"]
+    pending_count = total_count - verified_count
+
+    cards = source_cards.order_by("position", "pk")
+    if status != "all":
+        cards = cards.filter(is_verified=(status == "verified"))
 
     return render(
         request,
         "study/source_detail.html",
         {
             "source": source,
-            "cards": cards,
+            "cards": list(cards),
+            "status": status,
+            "total_count": total_count,
+            "verified_count": verified_count,
+            "pending_count": pending_count,
         },
     )
+
+
+def card_edit(request, pk):
+    card = get_object_or_404(Flashcard.objects.select_related("source"), pk=pk)
+
+    if request.method == "POST":
+        form = FlashcardForm(request.POST, instance=card)
+
+        if form.is_valid():
+            card = form.save(commit=False)
+            card.is_verified = False
+            card.save(
+                update_fields=("question", "answer", "source_quote", "is_verified"),
+            )
+            return redirect("source_detail", pk=card.source_id)
+    else:
+        form = FlashcardForm(instance=card)
+
+    return render(
+        request,
+        "study/card_form.html",
+        {
+            "card": card,
+            "source": card.source,
+            "form": form,
+        },
+    )
+
+
+@require_http_methods(["GET", "POST"])
+def card_delete(request, pk):
+    card = get_object_or_404(Flashcard, pk=pk)
+
+    if request.method == "POST":
+        source_id = card.source_id
+        card.delete()
+        return redirect("source_detail", pk=source_id)
+
+    return render(
+        request,
+        "study/card_confirm_delete.html",
+        {"card": card},
+    )
+
+
+@require_POST
+@csrf_protect
+def card_review(request, pk):
+    card = get_object_or_404(Flashcard, pk=pk)
+    action = request.POST.get("action")
+
+    if action not in ("verify", "reset"):
+        return HttpResponseBadRequest("Карточканы тексеру әрекеті жарамсыз.")
+
+    card.is_verified = action == "verify"
+    card.save(update_fields=("is_verified",))
+
+    return redirect("source_detail", pk=card.source_id)

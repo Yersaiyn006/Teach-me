@@ -1,0 +1,60 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Карточканы өшіру — Teach Me</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Unbounded:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'study/home.css' %}">
+</head>
+
+<body>
+
+<nav>
+    <a href="{% url 'home' %}" class="logo">
+        teach<span>me.</span>
+    </a>
+
+    <div class="nav-right">
+        <a href="{% url 'home' %}">Басты бет</a>
+    </div>
+</nav>
+
+<main class="container study-editor-page">
+
+    <section class="hero">
+        <div>
+            <h1>Карточканы өшіру</h1>
+            <p class="subtitle">Карточка {{ card.position }}</p>
+        </div>
+    </section>
+
+    <section class="study-delete-panel">
+        <form class="editor" method="post" action="{% url 'card_delete' pk=card.pk %}">
+            {% csrf_token %}
+
+            <h2>{{ card.question }}</h2>
+
+            <p class="study-delete-warning">
+                Өшірілген карточканы қалпына келтіру мүмкін емес.
+            </p>
+
+            <div class="study-form-actions">
+                <button class="study-button study-button--danger-confirm" type="submit">Иә, өшіру</button>
+                <a href="{% url 'source_detail' pk=card.source_id %}">Бас тарту</a>
+            </div>
+        </form>
+    </section>
+
+</main>
+
+<footer>
+    Teach Me © 2026 · Learn smarter.
+</footer>
+
+</body>
+</html>

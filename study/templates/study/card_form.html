@@ -1,0 +1,83 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Карточканы өңдеу — Teach Me</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Unbounded:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'study/home.css' %}">
+</head>
+
+<body>
+
+<nav>
+    <a href="{% url 'home' %}" class="logo">
+        teach<span>me.</span>
+    </a>
+
+    <div class="nav-right">
+        <a href="{% url 'home' %}">Басты бет</a>
+
+        <span class="mode">
+            {{ source.generation_mode|upper }}
+        </span>
+    </div>
+</nav>
+
+<main class="container study-editor-page">
+
+    <section class="hero">
+        <div>
+            <p class="desc">{{ source.title }}</p>
+            <h1>Карточканы өңдеу</h1>
+            <p class="subtitle">Карточка {{ card.position }}</p>
+        </div>
+    </section>
+
+    <div class="study-edit-layout">
+        <section aria-label="Карточканы өңдеу">
+            <form class="editor" method="post" action="{% url 'card_edit' pk=card.pk %}">
+                {% csrf_token %}
+                {{ form.non_field_errors }}
+
+                {% for field in form %}
+                    <div class="field">
+                        {{ field.label_tag }}
+                        {{ field }}
+                        {{ field.errors }}
+                    </div>
+                {% endfor %}
+
+                <p class="field-note">
+                    Сақтағаннан кейін карточканы қайта тексеру керек.
+                </p>
+
+                <div class="study-form-actions">
+                    <button class="study-button study-button--primary" type="submit">Сақтау</button>
+                    <a href="{% url 'source_detail' pk=source.pk %}">Бас тарту</a>
+                </div>
+            </form>
+        </section>
+
+        <section class="editor study-reference">
+            <h2>Бастапқы оқу мәтіні</h2>
+
+            <details class="study-source-text" open>
+                <summary>Дәйексөзді салыстыру</summary>
+                <div>{{ source.text|linebreaksbr }}</div>
+            </details>
+        </section>
+    </div>
+
+</main>
+
+<footer>
+    Teach Me © 2026 · Learn smarter.
+</footer>
+
+</body>
+</html>

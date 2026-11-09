@@ -1,4 +1,3 @@
-
 {% load static %}
 <!DOCTYPE html>
 <html lang="kk">
@@ -7,9 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ source.title }} — Teach Me</title>
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Unbounded:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'study/home.css' %}">
 </head>
 
@@ -21,9 +17,7 @@
     </a>
 
     <div class="nav-right">
-        <a href="{% url 'home' %}">
-            Басты бет
-        </a>
+        <a href="{% url 'home' %}">Басты бет</a>
 
         <span class="mode">
             {{ source.generation_mode|upper }}
@@ -35,9 +29,7 @@
 
     <section class="hero">
         <div>
-            <p class="desc">
-                Сақталған оқу материалы
-            </p>
+            <p class="desc">Сақталған оқу материалы</p>
 
             <h1>{{ source.title }}</h1>
 
@@ -56,56 +48,113 @@
         <h2>Оқу карточкалары</h2>
 
         <p class="desc">
-            {{ cards|length }} карточка сақталған.
-            Жауапты көру үшін «Жауапты көрсету»
-            батырмасын ашыңыз.
+            Тексерілді {{ verified_count }} / {{ total_count }}<br>
+            Қалды {{ pending_count }}
         </p>
+
+        <ul class="status-filters" aria-label="Карточкаларды күйі бойынша сүзу">
+            <li>
+                <a href="{% url 'source_detail' pk=source.pk %}"{% if status == "all" %} aria-current="page"{% endif %}>
+                    Барлығы ({{ total_count }})
+                </a>
+            </li>
+            <li>
+                <a href="?status=pending"{% if status == "pending" %} aria-current="page"{% endif %}>
+                    Тексеру керек ({{ pending_count }})
+                </a>
+            </li>
+            <li>
+                <a href="?status=verified"{% if status == "verified" %} aria-current="page"{% endif %}>
+                    Тексерілген ({{ verified_count }})
+                </a>
+            </li>
+        </ul>
+
+        {% if cards %}
+            <p class="desc">
+                «Жауапты көрсету» бөлімін ашып, сұрақты, жауапты және
+                дәйексөзді бастапқы мәтінмен салыстырыңыз.
+                Салыстырып болған соң «Карточканы тексердім» түймесін басыңыз.
+                Тексеру күйі қолмен белгіленеді.
+            </p>
+        {% endif %}
 
         <div class="cards">
             {% for card in cards %}
-                <article class="card">
-                    <div class="card-top">
-                        Карточка {{ card.position }}
+                <article class="card study-card">
+                    <div class="study-card-header">
+                        <span class="card-top">Карточка {{ card.position }}</span>
+
+                        {% if card.is_verified %}
+                            <span class="card-status card-status--verified">Тексерілді</span>
+                        {% else %}
+                            <span class="card-status">Тексеру керек</span>
+                        {% endif %}
                     </div>
 
                     <h3>{{ card.question }}</h3>
 
                     <details>
-                        <summary>
-                            Жауапты көрсету
-                        </summary>
+                        <summary>Жауапты көрсету</summary>
 
-                        <div class="answer">
-                            {{ card.answer }}
-                        </div>
+                        <div class="answer">{{ card.answer }}</div>
 
-                        <blockquote>
-                            {{ card.source_quote }}
-                        </blockquote>
+                        <blockquote>{{ card.source_quote }}</blockquote>
                     </details>
+
+                    <div class="study-card-actions">
+                        <form method="post" action="{% url 'card_review' pk=card.pk %}">
+                            {% csrf_token %}
+                            {% if card.is_verified %}
+                                <button class="study-button" type="submit" name="action" value="reset">
+                                    Тексеруге қайтару
+                                </button>
+                            {% else %}
+                                <button class="study-button study-button--primary" type="submit" name="action" value="verify">
+                                    Карточканы тексердім
+                                </button>
+                            {% endif %}
+                        </form>
+
+                        <div class="study-card-links">
+                            <a class="study-button" href="{% url 'card_edit' pk=card.pk %}">Өңдеу</a>
+                            <a class="study-button study-button--danger" href="{% url 'card_delete' pk=card.pk %}">Өшіру</a>
+                        </div>
+                    </div>
                 </article>
             {% empty %}
-                <div class="editor">
-                    <p class="desc">
-                        Бұл материалда карточкалар жоқ.
-                    </p>
+                <div class="editor study-empty">
+                    {% if total_count %}
+                        <p class="desc">Бұл сүзгіге сәйкес карточка жоқ.</p>
+                        <a href="{% url 'source_detail' pk=source.pk %}">
+                            Барлығын көрсету
+                        </a>
+                    {% else %}
+                        <p class="desc">
+                            Бұл жинақта карточка қалмады.
+                            Бастапқы оқу мәтінін төменде оқи аласыз.
+                        </p>
+                    {% endif %}
                 </div>
             {% endfor %}
         </div>
 
-        <p class="field-note">
-            Дәйексөз бастапқы мәтінде үзіндінің
-            бар екенін растайды, бірақ жауаптың
-            фактілік дұрыстығына кепілдік бермейді.
-        </p>
+        {% if cards %}
+            <p class="field-note">
+                Дәйексөз бастапқы мәтінде үзіндінің
+                бар екенін растайды, бірақ жауаптың
+                фактілік дұрыстығына кепілдік бермейді.
+            </p>
+        {% endif %}
     </section>
 
     <section class="results">
         <h2>Бастапқы оқу мәтіні</h2>
 
-        <div class="editor">
-            <div style="white-space: pre-wrap; overflow-wrap: anywhere;">{{ source.text }}</div>
-        </div>
+        <details class="editor study-source-text"{% if not total_count %} open{% endif %}>
+            <summary>Мәтінді көрсету</summary>
+            <div>{{ source.text|linebreaksbr }}</div>
+        </details>
     </section>
 
 </main>

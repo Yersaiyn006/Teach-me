@@ -1,4 +1,3 @@
-
 from copy import deepcopy
 from unittest.mock import patch
 
@@ -282,13 +281,9 @@ class TeachMeTests(TestCase):
             )
             self.assertContains(
                 response,
-                "<details>",
-                html=False,
-            )
-            self.assertContains(
-                response,
-                "<summary>",
-                html=False,
+                "<summary>Жауапты көрсету</summary>",
+                count=3,
+                html=True,
             )
 
         self.assertEqual(
